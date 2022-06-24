@@ -1,0 +1,4 @@
+-- liquibase formatted sql
+
+-- changeset liquibase:1
+CREATE TABLE users (id SERIAL PRIMARY KEY, twitch_id VARCHAR UNIQUE, config TEXT, created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP, updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP)
