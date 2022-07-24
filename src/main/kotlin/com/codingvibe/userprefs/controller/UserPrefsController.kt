@@ -1,52 +1,119 @@
 package com.codingvibe.userprefs.controller
 
+import com.auth0.jwt.JWT
+import com.auth0.jwt.JWTVerifier
+import com.auth0.jwt.algorithms.Algorithm
+import com.auth0.jwt.exceptions.JWTVerificationException
 import com.codingvibe.userprefs.model.Preference
 import com.codingvibe.userprefs.model.PreferenceName
 import com.codingvibe.userprefs.service.TwitchService
 import com.codingvibe.userprefs.service.UserPrefsService
+import com.google.common.cache.Cache
+import liquibase.repackaged.org.apache.commons.text.RandomStringGenerator
 import org.springframework.http.HttpStatus
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.PutMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestHeader
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.*
 import org.springframework.web.server.ResponseStatusException
+import java.net.URI
+import java.time.Instant
+
 
 @RestController
 @RequestMapping("/v1/api")
 class UserPrefsController(
     private val userPrefsService: UserPrefsService,
-    private val twitchService: TwitchService
+    private val twitchService: TwitchService,
+    private val twitchStateCache: Cache<String, Instant>,
+    private val rsaAlgorithm: Algorithm,
+    private val jwtVerifier: JWTVerifier,
+    private val allowedOrigins: Array<String>
 ) {
-    @GetMapping("/prefs")
-    fun getUserPrefs(@RequestParam twitchId: String): PreferencesResponse {
-        if (twitchId.isEmpty()) {
-            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Twitch ID required for preferences. Query with param twitchId")
-        }
-        return toPreferencesResponse(userPrefsService.getPrefs(twitchId)
-            ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Preferences for Twitch user with ID $twitchId not found"))
+    companion object {
+        val randomStringBuilder: RandomStringGenerator = RandomStringGenerator.Builder()
+            .withinRange('0'.code, 'z'.code)
+            .filteredBy(Character::isLetterOrDigit)
+            .build()
+    }
+    @GetMapping("/login")
+    fun redirectToLogin(): ResponseEntity<Void> {
+        val state = randomStringBuilder.generate(20)
+        twitchStateCache.put(state, Instant.now())
+        val loginUrl = twitchService.getLoginUrl(state)
+        return ResponseEntity.status(HttpStatus.FOUND).location(URI.create(loginUrl)).build()
     }
 
-    @PutMapping("/prefs/{twitchId}")
-    suspend fun updatePrefs(@PathVariable("twitchId") twitchId: String?, @RequestHeader("X-Twitch-Token") twitchToken: String?,
-                            @RequestBody preferences: PreferencesResponse): PreferencesResponse {
-        if (twitchId.isNullOrEmpty()) {
-            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Twitch ID is required")
-        }
+    @GetMapping("/authenticate")
+    @CrossOrigin("http://localhost:3000", "https://cafeprefs.codingvibe.dev")
+    suspend fun authenticate(@RequestHeader("X-Twitch-State") twitchState: String?,
+                             @RequestHeader("X-Twitch-Token") twitchToken: String?): StateValidationResponse {
         if (twitchToken.isNullOrEmpty()) {
             throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Twitch auth token required in X-Twitch-Token header")
         }
-        validateTwitchId(twitchId, twitchToken)
-        return toPreferencesResponse(userPrefsService.updatePrefs(twitchId, fromPreferencesResponse(preferences)))
+        if (twitchState.isNullOrEmpty()) {
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Twitch state required in X-Twitch-State header")
+        }
+        val storedState = twitchStateCache.getIfPresent(twitchState)
+        if (storedState != null) {
+            twitchStateCache.invalidate(twitchState)
+            val twitchUser = twitchService.getUser(twitchToken)
+                ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid Twitch Token. Try logging in again.")
+
+            try {
+                val token = JWT.create()
+                    .withIssuer("codingvibe")
+                    .withSubject("twitch-cafe-prefs")
+                    .withClaim("twitchToken", twitchToken)
+                    .withExpiresAt(Instant.now().plusSeconds(30*60))
+                    .sign(rsaAlgorithm);
+                userPrefsService.setAccessToken(twitchUser.login, token);
+                return StateValidationResponse(
+                    accessToken = token,
+                    createdAt = storedState
+                )
+            } catch (exception: JWTVerificationException) {
+                throw ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Issue validating identity. Try again later.")
+            }
+        }
+        throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Unrecognized login attempt. Try again.")
     }
 
-    private suspend fun validateTwitchId(requestUser: String, requestToken: String) {
-        val actualTwitchName = twitchService.getUser(requestToken)
-        if (requestUser != actualTwitchName?.displayName && requestUser != actualTwitchName?.id) {
-            throw ResponseStatusException(HttpStatus.FORBIDDEN, "Token user does not match passed user")
+    @GetMapping("/prefs")
+    @CrossOrigin("http://localhost:3000", "https://cafeprefs.codingvibe.dev")
+    suspend fun getUserPrefs(@RequestParam twitchId: String?,
+                             @RequestHeader("Authorization") authString: String?): PreferencesResponse {
+        try {
+            val twitchUsername = getTwitchId(twitchId, authString);
+            return toPreferencesResponse(userPrefsService.getPrefs(twitchUsername)
+                ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Preferences for Twitch user with ID $twitchUsername not found"))
+        } catch(e: JWTVerificationException) {
+            throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "Malformed or expired auth token")
+        } catch(e: IllegalArgumentException) {
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Twitch ID or Authorization header required for preferences.")
+        }
+    }
+
+    @PutMapping("/prefs")
+    @CrossOrigin("http://localhost:3000", "https://cafeprefs.codingvibe.dev")
+    suspend fun updatePrefs(@RequestHeader("Authorization") authString: String?,
+                            @RequestBody preferences: PreferencesResponse): PreferencesResponse {
+        if (authString.isNullOrEmpty()) {
+            throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "Auth required")
+        }
+        if (!authString.startsWith("Bearer ")) {
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Malformed auth");
+        }
+        try {
+            val twitchUser = getTwitchIdFromAuthString(authString);
+            return toPreferencesResponse(
+                userPrefsService.updatePrefs(
+                    twitchUser,
+                    fromPreferencesResponse(preferences)
+                )
+            )
+        } catch(e: JWTVerificationException) {
+            throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "Malformed or expired auth token")
+        } catch(e: IllegalArgumentException) {
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, e.message);
         }
     }
 
@@ -64,8 +131,32 @@ class UserPrefsController(
             }
         }
     }
+
+    private suspend fun getTwitchId(twitchId: String?, authString: String?): String {
+        if (!twitchId.isNullOrEmpty()) {
+            return twitchId;
+        }
+        if (!authString.isNullOrEmpty()) {
+            return getTwitchIdFromAuthString(authString);
+        }
+        throw IllegalArgumentException("Couldn't find Twitch ID")
+    }
+
+    private suspend fun getTwitchIdFromAuthString(authString: String): String {
+        if (!authString.startsWith("Bearer ")) {
+            throw JWTVerificationException("Auth string malformed")
+        }
+        val token = authString.replace("Bearer ", "")
+        val jwt = jwtVerifier.verify(token)
+        val twitchToken = jwt.getClaim("twitchToken")
+        return twitchService.getUser(twitchToken.asString())?.login ?: throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "Reauthenticate with Twitch.")
+    }
 }
 
+data class StateValidationResponse (
+    val accessToken: String? = null,
+    val createdAt: Instant? = null
+)
 data class PreferencesResponse (
     val prefs: List<PreferenceResponse>
 )

@@ -10,14 +10,14 @@ data class TwitchUser (
     val login: String,
     @JsonProperty("display_name")
     val displayName: String,
-    val type: String,
+    val type: String?,
     @JsonProperty("broadcaster_type")
     val broadcasterType: String,
     val description: String,
     @JsonProperty("profile_image_url")
     val profileImageUrl: String,
     @JsonProperty("offline_image_url")
-    val offlineImageUrl: String,
+    val offlineImageUrl: String?,
     @JsonProperty("view_count")
     val viewCount: Int,
     @JsonProperty("created_at")
