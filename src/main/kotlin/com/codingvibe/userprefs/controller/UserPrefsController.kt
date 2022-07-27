@@ -43,7 +43,7 @@ class UserPrefsController(
     }
 
     @GetMapping("/authenticate")
-    @CrossOrigin("http://localhost:3000", "https://cafeprefs.codingvibe.dev")
+    @CrossOrigin("http://localhost:3000", "https://prefs.codingvibe.dev")
     suspend fun authenticate(@RequestHeader("X-Twitch-State") twitchState: String?,
                              @RequestHeader("X-Twitch-Token") twitchToken: String?): StateValidationResponse {
         if (twitchToken.isNullOrEmpty()) {
@@ -78,7 +78,7 @@ class UserPrefsController(
     }
 
     @GetMapping("/prefs")
-    @CrossOrigin("http://localhost:3000", "https://cafeprefs.codingvibe.dev")
+    @CrossOrigin("http://localhost:3000", "https://prefs.codingvibe.dev")
     suspend fun getUserPrefs(@RequestParam twitchId: String?,
                              @RequestHeader("Authorization") authString: String?): PreferencesResponse {
         try {
@@ -93,7 +93,7 @@ class UserPrefsController(
     }
 
     @PutMapping("/prefs")
-    @CrossOrigin("http://localhost:3000", "https://cafeprefs.codingvibe.dev")
+    @CrossOrigin("http://localhost:3000", "https://prefs.codingvibe.dev")
     suspend fun updatePrefs(@RequestHeader("Authorization") authString: String?,
                             @RequestBody preferences: PreferencesResponse): PreferencesResponse {
         if (authString.isNullOrEmpty()) {

@@ -12,7 +12,7 @@ class CafePreferencesController(
     private val cafePrefsService: CafePrefsService
 ) {
     @GetMapping("/prefs")
-    @CrossOrigin("http://localhost:3000", "https://cafeprefs.codingvibe.dev")
+    @CrossOrigin("http://localhost:3000", "https://prefs.codingvibe.dev")
     fun getValidPreferences(): List<CafePreferencesResponse> {
         return toCafePreferencesResponse(cafePrefsService.getCafePreferences())
     }
