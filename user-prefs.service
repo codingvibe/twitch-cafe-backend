@@ -3,7 +3,7 @@ Description=Backend API for User Prefs Service
 
 [Service]
 WorkingDirectory=/root/twitch-cafe-backend/target/
-ExecStart=java -jar userprefs-1.0-SNAPSHOT-jar-with-dependencies.jar
+ExecStart=java -jar userprefs-1.0-SNAPSHOT.jar
 Restart=true
 
 [Install]

@@ -78,7 +78,7 @@ class UserPrefsDao(private val database: Database, private val objectMapper: Obj
         return UserPrefs(
             id = resultRow[Users.id],
             twitchId = resultRow[Users.twitchId],
-            prefs = objectMapper.readValue(resultRow[Users.config]),
+            prefs = if (!resultRow[Users.config].isNullOrEmpty()) objectMapper.readValue(resultRow[Users.config]) else emptyList(),
             createdAt = resultRow[Users.createdAt].toInstant(ZoneOffset.UTC),
             updatedAt = resultRow[Users.updatedAt].toInstant(ZoneOffset.UTC)
         )
