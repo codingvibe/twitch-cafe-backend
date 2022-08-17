@@ -76,7 +76,7 @@ open class UserPrefsConfig : WebMvcConfigurer {
             .registerModule(JavaTimeModule())
             .registerModule(ParameterNamesModule())
             .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-            .enable((SerializationFeature.WRITE_DATES_AS_TIMESTAMPS))
+            .enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
     }
 
     @Bean
