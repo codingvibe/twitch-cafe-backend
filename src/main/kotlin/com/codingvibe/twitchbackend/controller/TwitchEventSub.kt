@@ -63,14 +63,14 @@ class TwitchEventSub(
             MESSAGE_TYPE_NOTIFICATION -> {
                 when (message) {
                     is StreamOnline -> {
-                        twitchApiService.clearChatters(message.event.broadcasterUserLogin)
+                        twitchApiService.clearChatters(message.event?.broadcasterUserLogin!!)
                         websocketEventService.clearNotificationsQueue(message.event.broadcasterUserLogin)
                         websocketEventService.pauseNotifications(message.event.broadcasterUserLogin, 5*60)
                         return ResponseEntity.ok().build()
                     }
                     is CustomChannelPointRewardRedeemed -> {
                         websocketEventService.sendTwitchCommand(
-                            channel = message.event.broadcasterUserLogin,
+                            channel = message.event?.broadcasterUserLogin!!,
                             type = WebsocketNotificationType.POINTS_REDEMPTION,
                             username = message.event.userLogin,
                             command = message.event.reward.title

@@ -9,7 +9,7 @@ import java.time.Instant
 data class StreamOnline (
     override val challenge: String?,
     override val subscription: StreamOnlineSubscription,
-    val event: StreamOnlineEvent
+    val event: StreamOnlineEvent?
 ): TwitchEventSubNotification
 
 data class StreamOnlineSubscription(

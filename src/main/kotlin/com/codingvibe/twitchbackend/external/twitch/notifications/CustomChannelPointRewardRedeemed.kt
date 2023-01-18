@@ -9,7 +9,7 @@ import java.time.Instant
 data class CustomChannelPointRewardRedeemed (
     override val challenge: String?,
     override val subscription: CustomChannelPointRewardRedeemedSubscription,
-    val event: CustomChannelPointRewardRedeemedEvent
+    val event: CustomChannelPointRewardRedeemedEvent?
 ): TwitchEventSubNotification
 
 data class CustomChannelPointRewardRedeemedSubscription(
