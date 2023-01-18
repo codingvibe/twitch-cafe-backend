@@ -11,7 +11,7 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 open class WebsocketConfig : WebSocketMessageBrokerConfigurer {
     override fun registerStompEndpoints(registry: StompEndpointRegistry) {
         registry.addEndpoint("/notifications")
-            .setAllowedOrigins("http://localhost:8000", "https://twitchbotapi.codingvibe.dev").withSockJS()
+            .setAllowedOrigins("http://localhost:8000", "https://twitchoverlay.codingvibe.dev").withSockJS()
     }
 
     override fun configureMessageBroker(config: MessageBrokerRegistry){
