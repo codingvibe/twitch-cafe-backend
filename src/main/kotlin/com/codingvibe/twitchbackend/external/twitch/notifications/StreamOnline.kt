@@ -1,7 +1,7 @@
-package com.codingvibe.userprefs.external.twitch.notifications
+package com.codingvibe.twitchbackend.external.twitch.notifications
 
-import com.codingvibe.userprefs.external.twitch.TwitchEventSubNotification
-import com.codingvibe.userprefs.external.twitch.TwitchEventSubSubscription
+import com.codingvibe.twitchbackend.external.twitch.TwitchEventSubNotification
+import com.codingvibe.twitchbackend.external.twitch.TwitchEventSubSubscription
 import com.fasterxml.jackson.annotation.JsonProperty
 import java.time.Instant
 

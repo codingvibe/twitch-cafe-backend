@@ -1,6 +1,6 @@
-package com.codingvibe.userprefs.service
+package com.codingvibe.twitchbackend.service
 
-import com.codingvibe.userprefs.model.Preference
+import com.codingvibe.twitchbackend.model.Preference
 import org.springframework.messaging.simp.SimpMessagingTemplate
 import java.util.*
 import kotlin.collections.HashMap

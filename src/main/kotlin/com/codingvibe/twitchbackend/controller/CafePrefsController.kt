@@ -1,7 +1,7 @@
-package com.codingvibe.userprefs.controller
+package com.codingvibe.twitchbackend.controller
 
-import com.codingvibe.userprefs.service.CafePreference
-import com.codingvibe.userprefs.service.CafePrefsService
+import com.codingvibe.twitchbackend.service.CafePreference
+import com.codingvibe.twitchbackend.service.CafePrefsService
 import org.springframework.web.bind.annotation.*
 
 

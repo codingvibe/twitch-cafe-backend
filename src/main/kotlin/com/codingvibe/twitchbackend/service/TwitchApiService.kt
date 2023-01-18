@@ -1,4 +1,4 @@
-package com.codingvibe.userprefs.service
+package com.codingvibe.twitchbackend.service
 
 import com.github.twitch4j.TwitchClient
 import com.github.twitch4j.chat.events.channel.ChannelMessageEvent

@@ -1,7 +1,7 @@
-package com.codingvibe.userprefs.dao
+package com.codingvibe.twitchbackend.dao
 
-import com.codingvibe.userprefs.model.Preference
-import com.codingvibe.userprefs.model.UserPrefs
+import com.codingvibe.twitchbackend.model.Preference
+import com.codingvibe.twitchbackend.model.UserPrefs
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import org.jetbrains.exposed.sql.*

@@ -1,4 +1,4 @@
-package com.codingvibe.userprefs.config
+package com.codingvibe.twitchbackend.config
 
 import org.springframework.context.annotation.Configuration
 import org.springframework.messaging.simp.config.MessageBrokerRegistry

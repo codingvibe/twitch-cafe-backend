@@ -1,4 +1,4 @@
-package com.codingvibe.userprefs.model
+package com.codingvibe.twitchbackend.model
 
 import java.time.Instant
 

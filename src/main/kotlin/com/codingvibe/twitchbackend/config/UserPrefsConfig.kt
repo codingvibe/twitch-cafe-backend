@@ -1,14 +1,14 @@
-package com.codingvibe.userprefs.config
+package com.codingvibe.twitchbackend.config
 
 import com.auth0.jwt.JWT
 import com.auth0.jwt.JWTVerifier
 import com.auth0.jwt.algorithms.Algorithm
-import com.codingvibe.userprefs.dao.CafePrefsDao
-import com.codingvibe.userprefs.dao.UserPrefsDao
-import com.codingvibe.userprefs.service.CafePrefsService
-import com.codingvibe.userprefs.service.TwitchApiService
-import com.codingvibe.userprefs.service.UserPrefsService
-import com.codingvibe.userprefs.service.WebsocketEventService
+import com.codingvibe.twitchbackend.dao.CafePrefsDao
+import com.codingvibe.twitchbackend.dao.UserPrefsDao
+import com.codingvibe.twitchbackend.service.CafePrefsService
+import com.codingvibe.twitchbackend.service.TwitchApiService
+import com.codingvibe.twitchbackend.service.UserPrefsService
+import com.codingvibe.twitchbackend.service.WebsocketEventService
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature

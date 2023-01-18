@@ -1,4 +1,4 @@
-package com.codingvibe.userprefs.controller
+package com.codingvibe.twitchbackend.controller
 
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity

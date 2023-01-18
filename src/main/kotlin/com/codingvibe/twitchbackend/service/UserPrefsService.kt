@@ -1,7 +1,7 @@
-package com.codingvibe.userprefs.service
+package com.codingvibe.twitchbackend.service
 
-import com.codingvibe.userprefs.dao.UserPrefsDao
-import com.codingvibe.userprefs.model.Preference
+import com.codingvibe.twitchbackend.dao.UserPrefsDao
+import com.codingvibe.twitchbackend.model.Preference
 
 class UserPrefsService (private val dao: UserPrefsDao,
                         private val cafePrefsService: CafePrefsService) {

@@ -1,4 +1,4 @@
-package com.codingvibe.userprefs.model
+package com.codingvibe.twitchbackend.model
 
 enum class PreferenceName {
     DrinkOrder,

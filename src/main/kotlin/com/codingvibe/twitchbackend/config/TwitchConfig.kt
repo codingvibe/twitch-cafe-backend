@@ -1,13 +1,10 @@
-package com.codingvibe.userprefs.config
+package com.codingvibe.twitchbackend.config
 
 import com.github.philippheuer.credentialmanager.CredentialManager
 import com.github.philippheuer.credentialmanager.CredentialManagerBuilder
-import com.github.philippheuer.credentialmanager.domain.OAuth2Credential
 import com.github.twitch4j.TwitchClient
 import com.github.twitch4j.TwitchClientBuilder
 import com.github.twitch4j.auth.providers.TwitchIdentityProvider
-import com.github.twitch4j.chat.TwitchChat
-import com.github.twitch4j.chat.TwitchChatBuilder
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.env.Environment

@@ -1,4 +1,4 @@
-package com.codingvibe.userprefs
+package com.codingvibe.twitchbackend
 
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication

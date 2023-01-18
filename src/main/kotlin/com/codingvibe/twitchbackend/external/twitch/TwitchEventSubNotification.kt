@@ -1,7 +1,7 @@
-package com.codingvibe.userprefs.external.twitch
+package com.codingvibe.twitchbackend.external.twitch
 
-import com.codingvibe.userprefs.external.twitch.notifications.CustomChannelPointRewardRedeemed
-import com.codingvibe.userprefs.external.twitch.notifications.StreamOnline
+import com.codingvibe.twitchbackend.external.twitch.notifications.CustomChannelPointRewardRedeemed
+import com.codingvibe.twitchbackend.external.twitch.notifications.StreamOnline
 import com.fasterxml.jackson.databind.ObjectMapper
 import java.time.Instant
 

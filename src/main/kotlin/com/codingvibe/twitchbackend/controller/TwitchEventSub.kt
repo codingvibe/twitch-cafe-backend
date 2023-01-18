@@ -1,12 +1,11 @@
-package com.codingvibe.userprefs.controller
+package com.codingvibe.twitchbackend.controller
 
-import com.codingvibe.userprefs.external.twitch.getTwitchEventSubPayload
-import com.codingvibe.userprefs.external.twitch.notifications.CustomChannelPointRewardRedeemed
-import com.codingvibe.userprefs.external.twitch.notifications.StreamOnline
-import com.codingvibe.userprefs.service.TwitchApiService
-import com.codingvibe.userprefs.service.UserPrefsService
-import com.codingvibe.userprefs.service.WebsocketEventService
-import com.codingvibe.userprefs.service.WebsocketNotificationType
+import com.codingvibe.twitchbackend.external.twitch.getTwitchEventSubPayload
+import com.codingvibe.twitchbackend.external.twitch.notifications.CustomChannelPointRewardRedeemed
+import com.codingvibe.twitchbackend.external.twitch.notifications.StreamOnline
+import com.codingvibe.twitchbackend.service.TwitchApiService
+import com.codingvibe.twitchbackend.service.WebsocketEventService
+import com.codingvibe.twitchbackend.service.WebsocketNotificationType
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity

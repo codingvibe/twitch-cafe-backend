@@ -1,13 +1,13 @@
-package com.codingvibe.userprefs.controller
+package com.codingvibe.twitchbackend.controller
 
 import com.auth0.jwt.JWT
 import com.auth0.jwt.JWTVerifier
 import com.auth0.jwt.algorithms.Algorithm
 import com.auth0.jwt.exceptions.JWTVerificationException
-import com.codingvibe.userprefs.model.Preference
-import com.codingvibe.userprefs.model.PreferenceName
-import com.codingvibe.userprefs.service.TwitchApiService
-import com.codingvibe.userprefs.service.UserPrefsService
+import com.codingvibe.twitchbackend.model.Preference
+import com.codingvibe.twitchbackend.model.PreferenceName
+import com.codingvibe.twitchbackend.service.TwitchApiService
+import com.codingvibe.twitchbackend.service.UserPrefsService
 import com.google.common.cache.Cache
 import liquibase.repackaged.org.apache.commons.text.RandomStringGenerator
 import org.springframework.http.HttpStatus
