@@ -12,5 +12,5 @@ CREATE INDEX access_token_idx ON users (access_token);
 CREATE TABLE prefs (id SERIAL PRIMARY KEY, name VARCHAR UNIQUE, valid_values TEXT, created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP, updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP);
 
 INSERT INTO prefs (name, valid_values) VALUES ('DrinkOrder', '[]');
-INSERT INTO prefs (name, valid_values) VALUES ('LurkAnimation', '["customer.png"]');
-INSERT INTO prefs (name, valid_values) VALUES ('FirstMessageAnimation', '["customer.png"]');
+INSERT INTO prefs (name, valid_values) VALUES ('LurkAnimation', '["customer"]');
+INSERT INTO prefs (name, valid_values) VALUES ('FirstMessageAnimation', '["customer"]');

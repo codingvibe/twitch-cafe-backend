@@ -6,7 +6,7 @@ import com.auth0.jwt.algorithms.Algorithm
 import com.auth0.jwt.exceptions.JWTVerificationException
 import com.codingvibe.userprefs.model.Preference
 import com.codingvibe.userprefs.model.PreferenceName
-import com.codingvibe.userprefs.service.TwitchService
+import com.codingvibe.userprefs.service.TwitchApiService
 import com.codingvibe.userprefs.service.UserPrefsService
 import com.google.common.cache.Cache
 import liquibase.repackaged.org.apache.commons.text.RandomStringGenerator
@@ -22,7 +22,7 @@ import java.time.Instant
 @RequestMapping("/v1/api")
 class UserPrefsController(
     private val userPrefsService: UserPrefsService,
-    private val twitchService: TwitchService,
+    private val twitchApiService: TwitchApiService,
     private val twitchStateCache: Cache<String, Instant>,
     private val rsaAlgorithm: Algorithm,
     private val jwtVerifier: JWTVerifier,
@@ -38,14 +38,14 @@ class UserPrefsController(
     fun redirectToLogin(): ResponseEntity<Void> {
         val state = randomStringBuilder.generate(20)
         twitchStateCache.put(state, Instant.now())
-        val loginUrl = twitchService.getLoginUrl(state)
+        val loginUrl = twitchApiService.getLoginUrl(state)
         return ResponseEntity.status(HttpStatus.FOUND).location(URI.create(loginUrl)).build()
     }
 
     @GetMapping("/authenticate")
     @CrossOrigin("http://localhost:3000", "https://prefs.codingvibe.dev")
-    suspend fun authenticate(@RequestHeader("X-Twitch-State") twitchState: String?,
-                             @RequestHeader("X-Twitch-Token") twitchToken: String?): StateValidationResponse {
+    fun authenticate(@RequestHeader("X-Twitch-State") twitchState: String?,
+                     @RequestHeader("X-Twitch-Token") twitchToken: String?): StateValidationResponse {
         if (twitchToken.isNullOrEmpty()) {
             throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Twitch auth token required in X-Twitch-Token header")
         }
@@ -55,7 +55,7 @@ class UserPrefsController(
         val storedState = twitchStateCache.getIfPresent(twitchState)
         if (storedState != null) {
             twitchStateCache.invalidate(twitchState)
-            val twitchUser = twitchService.getUser(twitchToken)
+            val twitchUser = twitchApiService.getUser(twitchToken)
                 ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid Twitch Token. Try logging in again.")
 
             try {
@@ -65,7 +65,7 @@ class UserPrefsController(
                     .withClaim("twitchToken", twitchToken)
                     .withExpiresAt(Instant.now().plusSeconds(30*60))
                     .sign(rsaAlgorithm);
-                userPrefsService.setAccessToken(twitchUser.login, token);
+                userPrefsService.setAccessToken(twitchUser.login, token)
                 return StateValidationResponse(
                     accessToken = token,
                     createdAt = storedState
@@ -79,10 +79,10 @@ class UserPrefsController(
 
     @GetMapping("/prefs")
     @CrossOrigin("http://localhost:3000", "https://prefs.codingvibe.dev")
-    suspend fun getUserPrefs(@RequestParam twitchId: String?,
+    fun getUserPrefs(@RequestParam twitchId: String?,
                              @RequestHeader("Authorization") authString: String?): PreferencesResponse {
         try {
-            val twitchUsername = getTwitchId(twitchId, authString);
+            val twitchUsername = getTwitchId(twitchId, authString)
             return toPreferencesResponse(userPrefsService.getPrefs(twitchUsername)
                 ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Preferences for Twitch user with ID $twitchUsername not found"))
         } catch(e: JWTVerificationException) {
@@ -94,8 +94,8 @@ class UserPrefsController(
 
     @PutMapping("/prefs")
     @CrossOrigin("http://localhost:3000", "https://prefs.codingvibe.dev")
-    suspend fun updatePrefs(@RequestHeader("Authorization") authString: String?,
-                            @RequestBody preferences: PreferencesResponse): PreferencesResponse {
+    fun updatePrefs(@RequestHeader("Authorization") authString: String?,
+                    @RequestBody preferences: PreferencesResponse): PreferencesResponse {
         if (authString.isNullOrEmpty()) {
             throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "Auth required")
         }
@@ -103,7 +103,7 @@ class UserPrefsController(
             throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Malformed auth");
         }
         try {
-            val twitchUser = getTwitchIdFromAuthString(authString);
+            val twitchUser = getTwitchIdFromAuthString(authString)
             return toPreferencesResponse(
                 userPrefsService.updatePrefs(
                     twitchUser,
@@ -132,24 +132,24 @@ class UserPrefsController(
         }
     }
 
-    private suspend fun getTwitchId(twitchId: String?, authString: String?): String {
+    private fun getTwitchId(twitchId: String?, authString: String?): String {
         if (!twitchId.isNullOrEmpty()) {
-            return twitchId;
+            return twitchId
         }
         if (!authString.isNullOrEmpty()) {
-            return getTwitchIdFromAuthString(authString);
+            return getTwitchIdFromAuthString(authString)
         }
         throw IllegalArgumentException("Couldn't find Twitch ID")
     }
 
-    private suspend fun getTwitchIdFromAuthString(authString: String): String {
+    private fun getTwitchIdFromAuthString(authString: String): String {
         if (!authString.startsWith("Bearer ")) {
             throw JWTVerificationException("Auth string malformed")
         }
         val token = authString.replace("Bearer ", "")
         val jwt = jwtVerifier.verify(token)
         val twitchToken = jwt.getClaim("twitchToken")
-        return twitchService.getUser(twitchToken.asString())?.login ?: throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "Reauthenticate with Twitch.")
+        return twitchApiService.getUser(twitchToken.asString())?.login ?: throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "Reauthenticate with Twitch.")
     }
 }
 

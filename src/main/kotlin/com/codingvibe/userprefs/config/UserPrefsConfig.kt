@@ -5,16 +5,17 @@ import com.auth0.jwt.JWTVerifier
 import com.auth0.jwt.algorithms.Algorithm
 import com.codingvibe.userprefs.dao.CafePrefsDao
 import com.codingvibe.userprefs.dao.UserPrefsDao
-import com.codingvibe.userprefs.external.twitch.TwitchApi
 import com.codingvibe.userprefs.service.CafePrefsService
-import com.codingvibe.userprefs.service.TwitchService
+import com.codingvibe.userprefs.service.TwitchApiService
 import com.codingvibe.userprefs.service.UserPrefsService
+import com.codingvibe.userprefs.service.WebsocketEventService
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.fasterxml.jackson.module.paramnames.ParameterNamesModule
+import com.github.twitch4j.TwitchClient
 import com.google.common.cache.Cache
 import com.google.common.cache.CacheBuilder
 import org.jetbrains.exposed.sql.Database
@@ -22,10 +23,9 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.env.Environment
+import org.springframework.messaging.simp.SimpMessagingTemplate
 import org.springframework.web.servlet.config.annotation.EnableWebMvc
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
-import retrofit2.Retrofit
-import retrofit2.converter.jackson.JacksonConverterFactory
 import java.io.File
 import java.net.URLEncoder
 import java.nio.file.Files
@@ -80,19 +80,11 @@ open class UserPrefsConfig : WebMvcConfigurer {
     }
 
     @Bean
-    open fun twitchApi(objectMapper: ObjectMapper): TwitchApi {
-        val twitchApi = env!!.getRequiredProperty("twitch.baseUrl")
-        val retrofit =  Retrofit.Builder().baseUrl(twitchApi)
-            .addConverterFactory(JacksonConverterFactory.create(objectMapper))
-            .build()
-        return retrofit.create(TwitchApi::class.java)
-    }
-
-    @Bean
-    open fun twitchService(twitchApi: TwitchApi): TwitchService {
+    open fun twitchService(twitchClient: TwitchClient, websocketEventService: WebsocketEventService): TwitchApiService {
         val twitchClientId = env!!.getRequiredProperty("twitch.clientId")
         val redirectUrl = URLEncoder.encode(env!!.getRequiredProperty("twitch.redirectUrl"), "UTF-8")
-        return TwitchService(twitchApi, twitchClientId, redirectUrl)
+        val serverCommands = env!!.getRequiredProperty("twitch.chatCommands").split(",")
+        return TwitchApiService(twitchClientId, redirectUrl, twitchClient, websocketEventService, serverCommands)
     }
 
     @Bean
@@ -134,5 +126,10 @@ open class UserPrefsConfig : WebMvcConfigurer {
     @Bean
     open fun cafePrefsService(dao: CafePrefsDao): CafePrefsService {
         return CafePrefsService(dao)
+    }
+
+    @Bean
+    open fun webSocketEventService( prefsService: UserPrefsService, simpMessagingTemplate: SimpMessagingTemplate): WebsocketEventService {
+        return WebsocketEventService(prefsService, simpMessagingTemplate)
     }
 }
